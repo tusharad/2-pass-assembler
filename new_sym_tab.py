@@ -87,7 +87,7 @@ def getDataSymbols(line):
         temp = temp.zfill(8)
         temp = str(hex(prev_address)).replace("0x","")
         temp = temp.zfill(8)
-        x = Row(len(sym_table)+1,variable_name,temp,value,current_section,"D")
+        x = Row(len(sym_table)+1,variable_name,temp,value,current_section,"D" if current_section == ".data" else "r")
         sym_table.append(x)
         prev_address = new_address
         return temp
