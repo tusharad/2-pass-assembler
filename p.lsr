@@ -1,0 +1,32 @@
+     1                                  section .data
+     2 00000000 4142430A00                  a db "ABC",10,0
+     3 00000005 414243000A00000000-         k dd "ABC",10,0
+     3 0000000E 000000             
+     4 00000011 48656C6C6F000000            b dd "Hello"
+     5 00000019 48656C6C6F000A00            c dw "Hello",10
+     6                                  section .rodata
+     7 00000000 48656C6C6F0A00              d db "Hello",10,0
+     8 00000007 48656C6C6F000000            e dd "Hello"
+     9 0000000F 61626300                    l dd "abc"
+    10 00000013 48656C6C6F000A00            f dw "Hello",10
+    11                                  section .bss
+    12 00000000 ??                          g resb 1
+    13 00000001 ????????????????            h resd 2
+    14 00000009 ????????????                i resw 3
+    15                                  section .text
+    16                                      global main
+    17                                      extern printf
+    18                                  main:
+    19 00000000 89D9                    	mov ecx,ebx
+    20 00000002 8B03                    	mov eax,[ebx]
+    21 00000004 8B4102                  	mov eax,[ecx+2]
+    22 00000007 8B8221010000            	mov eax,[edx+289]
+    23                                  abc:
+    24 0000000D BA0C000000              	mov edx,12
+    25 00000012 BB80000000              	mov ebx,128
+    26 00000017 01D9                    	add ecx,ebx
+    27 00000019 81C384000000            	add ebx,132
+    28 0000001F 29C3                    	sub ebx,eax
+    29 00000021 81E981000000            	sub ecx,129
+    30 00000027 31D9                    	xor ecx,ebx
+    31 00000029 31DB                    	xor ebx,ebx

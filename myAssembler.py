@@ -14,7 +14,6 @@ def Error_table(error_name = ""):
     return error_table[error_name]
 
 def readFile(fileName):
-    new_sym_tab.get_symbol_table(fileName)
     data_lst.get_list_table(fileName)
 
 if __name__ == "__main__":

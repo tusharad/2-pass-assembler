@@ -1,0 +1,44 @@
+     1                                  section .data
+     2 00000000 4142430A00                  a db "ABC",10,0
+     3 00000005 414243000A00000000-         k dd "ABC",10,0
+     3 0000000E 000000             
+     4 00000011 48656C6C6F000000            b dd "Hello"
+     5 00000019 48656C6C6F000A00            c dw "Hello",10
+     6                                  section .rodata
+     7 00000000 48656C6C6F0A00              d db "Hello",10,0
+     8 00000007 48656C6C6F000000            e dd "Hello"
+     9 0000000F 61626300                    l dd "abc"
+    10 00000013 48656C6C6F000A00            f dw "Hello",10
+    11                                  section .bss
+    12 00000000 ??                          g resb 1
+    13 00000001 ????????????????            h resd 2
+    14 00000009 ????????????                i resw 3
+    15                                  section .text
+    16                                      global main
+    17                                      extern printf
+    18                                  main:
+    19 00000000 89D9                    	mov ecx,ebx
+    20 00000002 8B03                    	mov eax,[ebx]
+    21 00000004 8B4102                  	mov eax,[ecx+2]
+    22 00000007 8B8221010000            	mov eax,[edx+289]
+    23 0000000D 81C1[19000000]            add ecx,c
+    24 00000013 81EA[0F000000]            sub edx,l
+    25 00000019 81F3[13000000]            xor ebx,f
+    26 0000001F BA0C000000                mov edx,12
+    27                                  abc:
+    28 00000024 89CB                      mov ebx,ecx
+    29                                  pqr:
+    30 00000026 89D8                      mov eax,ebx
+    31 00000028 EBFA                      jmp abc
+    32 0000002A EBF8                      jmp abc
+    33 0000002C EBF6                      jmp abc
+    34 0000002E EBF4                      jmp abc
+    35 00000030 EBF2                      jmp abc
+    36 00000032 01D9                      add ecx,ebx
+    37 00000034 81C384000000              add ebx,132
+    38 0000003A 29C3                      sub ebx,eax
+    39 0000003C 81E981000000              sub ecx,129
+    40 00000042 31D9                      xor ecx,ebx
+    41 00000044 31DB                      xor ebx,ebx
+    42 00000046 83C30A                    add ebx,10
+    43 00000049 83EB0A                    sub ebx,10

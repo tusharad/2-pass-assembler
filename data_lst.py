@@ -1,34 +1,39 @@
-from math import ceil
 from prettytable import PrettyTable
 import getMODrM
+import new_sym_tab
 import sys
 
 MODE = ""
 ADDRESS = 0
 new_ADDRESS = 0
+sym_var = []
 declarative = ["extern","global"]
-operations = ["add","sub","mov"]
+operations = ["add","sub","mov","xor","jmp","inc","dec"]
 register32 = ["eax","ecx","edx","ebx","esp","ebp","esi","edi"]
 main_table = [
-        ["89","01","29"],
-        ["8B","03","2B"],
-        ["B8","81","81"],
-        ["C7","81","81"]
+	    # MOV  ADD  SUB  XOR
+        ["89","01","29","31"],#r32_r32
+        ["8B","03","2B","33"],#r32_m32
+        ["B8","81","81","81"],#r32_imm32
+        ["C7","81","81","81"],#m32_imm32
     ]
-opcode_column = ["MOV","ADD","SUB"]
+single_operand_instrcutions = ["JMP","INC","DEC"]
+slash_vals = {"ADD":"eax","SUB":"ebp","XOR":"esi"}
+opcode_column = ["MOV","ADD","SUB","XOR"]
 opcode_row = ["r32_r32","r32_m32","r32_imm32","m32_imm32"]
 
 listing = []
 
 class Row:
     def __init__(self,no,address,hexing,instruction):
-	    self.no = no
-	    self.address = address
-	    self.hexing = hexing
-	    self.instruction = instruction
+        self.no = no
+        self.address = address
+        self.hexing = hexing
+        self.instruction = instruction
 
 def getOperand(tokens):
     flag = False
+    token = ""
     for token in tokens:
         if "," in token:
             flag = True
@@ -177,6 +182,7 @@ def getDBConversion(text):
 def dbConvert(tokens):
     token = getOperand(tokens)
     res = ""
+    t = ""
     if isinstance(token,list):
         for t in token:
             res += getDBConversion(t)
@@ -215,6 +221,7 @@ def convertData(tokens):
 def convertBSS(tokens):
     global ADDRESS
     res = '<res '
+    data = ""
     if(tokens[1] == "resb"):
         data = str(tokens[2])
     elif(tokens[1] == "resw"):
@@ -265,6 +272,7 @@ def get32bitHex(num):
 
 
 def getOpcode(inst,op_type,tokens):
+    global slash_vals #for /0 /1 values
     if(not inst in opcode_column or not op_type in opcode_row):
         return ""
     col= opcode_column.index(inst)
@@ -272,20 +280,42 @@ def getOpcode(inst,op_type,tokens):
     inst_op = main_table[row][col]
     x = ""
     y =""
+    reg = ""
+    # /0 /1 /2 /3 is yet to be implemented
     if(op_type == "r32_imm32"):
-        x = int(inst_op,16)
-        regs = tokens.split(",")
-        reg = regs[0]
-        n = register32.index(reg)
-        x += n
-        x = str(hex(x)).replace("0x","").upper()
-        y = get32bitHex(int(regs[1]))
-        return x+y
+        # check if it is MOV instruction
+        if(row == 2 and col == 0):
+          x = int(inst_op,16)
+          regs = tokens.split(",")
+          reg = regs[0]
+          n = register32.index(reg)
+          x += n
+          x = str(hex(x)).replace("0x","").upper()
+          y = get32bitHex(int(regs[1]))
+          return x+y
+        # find which instruction is it wiht Instruction REg,immd format
+        else:
+          regs = tokens.split(",")
+          reg = regs[0]
+          print(f"inst is {inst} slash value is {slash_vals[inst]}")
+          something = slash_vals[inst]+","+reg
+          print(f"sending mod {something} reg is {reg}")
+          x += getMODrM.generate(reg+","+slash_vals[inst])
+          inst_op += x
+          value = regs[1]
+          if(int(value) > 127):
+              y = get32bitHex(int(regs[1]))
+          else:
+              y =  getMODrM.get8bitOffset(int(value))
+          #return x+y
+          #F9 = 1111 1001 = 0000 0110 = 0000 0111 = 7
+          #FC = 1111 1100 = 0000 0011 = 0000 0100 = 4
+          inst_op += y
     return inst_op
         
 
 def TypeOfOp(op):
-    if("[" in op and "]" in op):
+    if(("[" in op and "]" in op) or is_var(op)) :
         return "mem"
     if(op in register32):
         return "reg"
@@ -314,9 +344,61 @@ def getOpType(OpType):
                 return "r32_m32"
         return ""
 
+def is_var(op):
+	global sym_var
+	for ele in sym_var:
+		if op is ele.name:
+			return True
+	return False
+
+def getVarValue(op):
+	global sym_var
+	for ele in sym_var:
+		if (op is ele.name):
+                        return '['+ele.address+']'
+
+
+def flip(c):
+    return '1' if (c == '0') else '0'
+
+def getTwosComeplement(num):
+    binary = format(num,'08b')
+    ones = ""
+    tows = ""
+    i = 0
+    for i in range(8):
+        ones += flip(binary[i])
+    print(f"ones is {ones}")
+
+    twos = list(ones)
+    for i in range(len(binary) - 1, -1, -1):
+     
+        if (ones[i] == '1'):
+            twos[i] = '0'
+        else:        
+            twos[i] = '1'
+            break
+    i -= 1   
+    # If No break : all are 1 as in 111 or 11111
+    # in such case, add extra 1 at beginning
+    if (i == -1):
+        twos.insert(0, '1')
+    binary = ""
+    for ele in twos:
+        binary += ele
+    # adding 1 to fliped binary
+    dec1 = int(binary[:4],2)
+    dec2 = int(binary[4:8],2)
+    hex1 = str(hex(dec1)).replace("0x","")
+    hex2 = str(hex(dec2)).replace("0x","")
+    return hex1+hex2
+
 def convertText(tokens):
     global ADDRESS
+    global new_ADDRESS
     global register32
+    global sym_var
+    global listing 
     ModValue = 0
     res = ""
     if(tokens[0] in declarative):
@@ -325,18 +407,36 @@ def convertText(tokens):
         return ""
     if(tokens[0] in operations):
         if("," in tokens[1]):
-             operands = tokens[1].split(",")
-             if(not "]" in operands[1] and not operands[1] in register32):   
+            operands = tokens[1].split(",")
+            if(not "]" in operands[1] and not operands[1] in register32):   
                 #conversion time
                 ModValue = getInstructedOpcode(tokens)
-             else:
-                 ModValue = getMODrM.generate(tokens[1])
+                if(is_var(operands[1])):
+                  ModValue = getVarValue(operands[1])
+            else:
+                ModValue = getMODrM.generate(tokens[1])
+            inst = getInstructionName(tokens[0])
+            op_type = getOpType(tokens[1])
+            res = getOpcode(inst,op_type,tokens[1]) 
+            return res+str(ModValue)
         else:
-            pass
-    inst = getInstructionName(tokens[0])
-    op_type = getOpType(tokens[1])
-    res = getOpcode(inst,op_type,tokens[1]) 
-    return res+str(ModValue)
+            # given instruction is a single operand instruction
+            if(tokens[0] == "jmp"):
+                # performing backward reference jump
+                op_code = "EB"
+                label = tokens[1]
+                label_address = 0
+                label += ":"
+                last_ele = listing[-1]
+                last_ele_address = last_ele.address
+                for ele in listing:
+                    if(ele.instruction==label):
+                        last_ele_address = int(last_ele_address[-2:],16) + 4#last 2 digits of last address
+                        label_address = int(ele.address[-2:],16) # last two digits of label address
+                        rem = last_ele_address - label_address
+                        rem = getTwosComeplement(rem)
+                        return op_code+rem
+            return res+str(ModValue)
 
 def generate(line):
     global ADDRESS
@@ -356,7 +456,7 @@ def generate(line):
     res = ""
     if(MODE == ".data" or MODE == ".rodata"):
         res = convertData(tokens)
-        ADDRESS += len(res)//2
+        ADDRESS += int(len(res)//2)
     elif(MODE == ".bss"):
         res = convertBSS(tokens)
     if(MODE == ".text"):
@@ -369,13 +469,17 @@ def generate(line):
     new_ADDRESS = ADDRESS
 
 def printTable():
-	global listing
-	myTable = PrettyTable(['No','Address','Hexing','instruction'])
-	for ele in listing:
-		myTable.add_row([ele.no,ele.address,ele.hexing,ele.instruction])
-	print(myTable)
+    global listing
+    myTable = PrettyTable(['No','Address','Hexing','instruction'])
+    for ele in listing:
+        myTable.add_row([ele.no,ele.address,ele.hexing,ele.instruction])
+        if(":" in ele.instruction):
+            print(f"label {ele.instruction} and address {ele.address}")
+    print(myTable)
 
 def get_list_table(fileName):
+    global sym_var
+    sym_var = new_sym_tab.get_symbol_table(fileName)
     with open(fileName,"r") as f:
         for line in f:
             generate(line.strip())

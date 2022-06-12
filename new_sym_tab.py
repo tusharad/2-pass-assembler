@@ -166,12 +166,13 @@ def printTable():
 	for ele in sym_table:
 		myTable.add_row([ele.no,ele.name,ele.address,ele.value,ele.section,ele.symbol_type])
 	print(myTable)
+	return sym_table
 
 def get_symbol_table(fileName):
     with open(fileName,"r") as f:
         for line in f:
             generate(line.strip())
-        printTable()
+    return printTable()
 
 if __name__ == "__main__":
     with open(sys.argv[1],"r") as f:
