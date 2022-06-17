@@ -4,7 +4,11 @@ Python program to generate Hex translation of assembly code.
 
 ## Description
 
-We have learned the internal workings of the 32-bit version of the x86 instruction set architecture (i386). hence, as a semester long task. I have implement a simple version of nasm assembler. Which will create symbol table and give listing of hexadecimal conversion of assembly instructions. 
+This program generates the listing of the assembly program.
+Same as:
+  ```
+  $ nasm -felf32 sample.asm -l p.lst
+  ```
 
 ## Getting Started
 
