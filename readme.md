@@ -26,6 +26,14 @@ pip install prettyTable
 python3 myAssembler.py sample.asm
 ```
 
+## Features
+  1) MOD RM Byte
+  2) MOV,ADD,SUB,XOR instructions
+  3) register + 32bit / 8bit immediate data
+  4) Backward jump reference
+  5) Data, ro-data, bss section data declaration
+  6) register + data section
+
 ## Help
 
 Any advise for common problems or issues would be appreciated.

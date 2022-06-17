@@ -28,14 +28,14 @@ abc:
   mov ebx,ecx
 pqr:
   mov eax,ebx
+   jmp abc
   jmp abc
   jmp abc
   jmp abc
-  jmp abc
-  jmp abc
-  add ecx,ebx
+ add ecx,ebx
   add ebx,132
-  sub ebx,eax
+   jmp abc
+ sub ebx,eax
   sub ecx,129
   xor ecx,ebx
   xor ebx,ebx

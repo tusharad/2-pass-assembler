@@ -11,12 +11,12 @@ declarative = ["extern","global"]
 operations = ["add","sub","mov","xor","jmp","inc","dec"]
 register32 = ["eax","ecx","edx","ebx","esp","ebp","esi","edi"]
 main_table = [
-	    # MOV  ADD  SUB  XOR
+        # MOV  ADD  SUB  XOR
         ["89","01","29","31"],#r32_r32
         ["8B","03","2B","33"],#r32_m32
         ["B8","81","81","81"],#r32_imm32
         ["C7","81","81","81"],#m32_imm32
-    ]
+        ]
 single_operand_instrcutions = ["JMP","INC","DEC"]
 slash_vals = {"ADD":"eax","SUB":"ebp","XOR":"esi"}
 opcode_column = ["MOV","ADD","SUB","XOR"]
@@ -285,34 +285,34 @@ def getOpcode(inst,op_type,tokens):
     if(op_type == "r32_imm32"):
         # check if it is MOV instruction
         if(row == 2 and col == 0):
-          x = int(inst_op,16)
-          regs = tokens.split(",")
-          reg = regs[0]
-          n = register32.index(reg)
-          x += n
-          x = str(hex(x)).replace("0x","").upper()
-          y = get32bitHex(int(regs[1]))
-          return x+y
-        # find which instruction is it wiht Instruction REg,immd format
+            x = int(inst_op,16)
+            regs = tokens.split(",")
+            reg = regs[0]
+            n = register32.index(reg)
+            x += n
+            x = str(hex(x)).replace("0x","").upper()
+            y = get32bitHex(int(regs[1]))
+            return x+y
+      # find which instruction is it wiht Instruction REg,immd format
+    else:
+        regs = tokens.split(",")
+        reg = regs[0]
+        print(f"inst is {inst} slash value is {slash_vals[inst]}")
+        something = slash_vals[inst]+","+reg
+        print(f"sending mod {something} reg is {reg}")
+        x += getMODrM.generate(reg+","+slash_vals[inst])
+        inst_op += x
+        value = regs[1]
+        if(int(value) > 127):
+            y = get32bitHex(int(regs[1]))
         else:
-          regs = tokens.split(",")
-          reg = regs[0]
-          print(f"inst is {inst} slash value is {slash_vals[inst]}")
-          something = slash_vals[inst]+","+reg
-          print(f"sending mod {something} reg is {reg}")
-          x += getMODrM.generate(reg+","+slash_vals[inst])
-          inst_op += x
-          value = regs[1]
-          if(int(value) > 127):
-              y = get32bitHex(int(regs[1]))
-          else:
-              y =  getMODrM.get8bitOffset(int(value))
+            y =  getMODrM.get8bitOffset(int(value))
           #return x+y
           #F9 = 1111 1001 = 0000 0110 = 0000 0111 = 7
           #FC = 1111 1100 = 0000 0011 = 0000 0100 = 4
-          inst_op += y
+            inst_op += y
     return inst_op
-        
+
 
 def TypeOfOp(op):
     if(("[" in op and "]" in op) or is_var(op)) :
@@ -334,7 +334,7 @@ def getOpType(OpType):
         res1 = TypeOfOp(op1)
         res2 = TypeOfOp(op2)
         if(res1 == "mem"):
-                return "m32_imm32"
+            return "m32_imm32"
         elif(res1 == "reg"):
             if(res2 == "imm32" or res2 == "imm8"):
                 return "r32_imm32"
@@ -345,17 +345,17 @@ def getOpType(OpType):
         return ""
 
 def is_var(op):
-	global sym_var
-	for ele in sym_var:
-		if op is ele.name:
-			return True
-	return False
+    global sym_var
+    for ele in sym_var:
+        if op is ele.name:
+            return True
+    return False
 
 def getVarValue(op):
-	global sym_var
-	for ele in sym_var:
-		if (op is ele.name):
-                        return '['+ele.address+']'
+    global sym_var
+    for ele in sym_var:
+        if (op is ele.name):
+            return '['+ele.address+']'
 
 
 def flip(c):
@@ -364,7 +364,7 @@ def flip(c):
 def getTwosComeplement(num):
     binary = format(num,'08b')
     ones = ""
-    tows = ""
+    twos = ""
     i = 0
     for i in range(8):
         ones += flip(binary[i])
@@ -372,7 +372,7 @@ def getTwosComeplement(num):
 
     twos = list(ones)
     for i in range(len(binary) - 1, -1, -1):
-     
+
         if (ones[i] == '1'):
             twos[i] = '0'
         else:        
@@ -412,7 +412,7 @@ def convertText(tokens):
                 #conversion time
                 ModValue = getInstructedOpcode(tokens)
                 if(is_var(operands[1])):
-                  ModValue = getVarValue(operands[1])
+                    ModValue = getVarValue(operands[1])
             else:
                 ModValue = getMODrM.generate(tokens[1])
             inst = getInstructionName(tokens[0])
@@ -429,10 +429,12 @@ def convertText(tokens):
                 label += ":"
                 last_ele = listing[-1]
                 last_ele_address = last_ele.address
+                last_ele_hex = last_ele.hexing
+                print(f"Last ele address is {last_ele_address}")
                 for ele in listing:
                     if(ele.instruction==label):
-                        last_ele_address = int(last_ele_address[-2:],16) + 4#last 2 digits of last address
-                        label_address = int(ele.address[-2:],16) # last two digits of label address
+                        last_ele_address = int(last_ele_address[-2:],16) + len(last_ele_hex)//2#last 2 digits of last address
+                        label_address = int(ele.address[-2:],16) - 2 # last two digits of label address; -2 because jmp labels' 2 bytes should also be included
                         rem = last_ele_address - label_address
                         rem = getTwosComeplement(rem)
                         return op_code+rem
@@ -460,7 +462,7 @@ def generate(line):
     elif(MODE == ".bss"):
         res = convertBSS(tokens)
     if(MODE == ".text"):
-      res = convertText(tokens)
+        res = convertText(tokens)
       ADDRESS += len(res)//2
     temp = str(hex(new_ADDRESS)).replace("0x","")
     temp = temp.zfill(8)

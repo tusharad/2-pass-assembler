@@ -29,14 +29,14 @@
     28 00000024 89CB                      mov ebx,ecx
     29                                  pqr:
     30 00000026 89D8                      mov eax,ebx
-    31 00000028 EBFA                      jmp abc
+    31 00000028 EBFA                       jmp abc
     32 0000002A EBF8                      jmp abc
     33 0000002C EBF6                      jmp abc
     34 0000002E EBF4                      jmp abc
-    35 00000030 EBF2                      jmp abc
-    36 00000032 01D9                      add ecx,ebx
-    37 00000034 81C384000000              add ebx,132
-    38 0000003A 29C3                      sub ebx,eax
+    35 00000030 01D9                     add ecx,ebx
+    36 00000032 81C384000000              add ebx,132
+    37 00000038 EBEA                       jmp abc
+    38 0000003A 29C3                     sub ebx,eax
     39 0000003C 81E981000000              sub ecx,129
     40 00000042 31D9                      xor ecx,ebx
     41 00000044 31DB                      xor ebx,ebx
